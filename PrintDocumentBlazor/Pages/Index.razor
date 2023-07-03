@@ -1,0 +1,17 @@
+﻿@page "/"
+@using TinyMCE.Blazor
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <div class="d-flex gap-4 my-5">
+        <MudPaper Width="30%" Height="87vh" Elevation="3">
+
+        </MudPaper>
+        <MudPaper Width="70%" Height="87vh" Elevation="3" Class="overflow-hidden">
+            <Editor class="h-100"/>
+        </MudPaper>
+    </div>
+</MudContainer>
+
+@code {
+    QuillEditor QuillHtml = new();
+}
