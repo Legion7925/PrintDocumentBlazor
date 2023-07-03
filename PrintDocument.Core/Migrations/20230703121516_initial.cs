@@ -17,11 +17,36 @@ namespace PrintDocument.Core.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    ParentId = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Categories_Categories_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "Categories",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Keywords",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ParentId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Keywords", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Keywords_Keywords_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "Keywords",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -59,9 +84,19 @@ namespace PrintDocument.Core.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Categories_ParentId",
+                table: "Categories",
+                column: "ParentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Documents_CategoryId",
                 table: "Documents",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Keywords_ParentId",
+                table: "Keywords",
+                column: "ParentId");
         }
 
         /// <inheritdoc />
@@ -69,6 +104,9 @@ namespace PrintDocument.Core.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Documents");
+
+            migrationBuilder.DropTable(
+                name: "Keywords");
 
             migrationBuilder.DropTable(
                 name: "Users");

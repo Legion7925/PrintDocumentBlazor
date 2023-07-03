@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PrintDocument.Core;
 
@@ -11,9 +12,11 @@ using PrintDocument.Core;
 namespace PrintDocument.Core.Migrations
 {
     [DbContext(typeof(PrintContext))]
-    partial class PrintContextModelSnapshot : ModelSnapshot
+    [Migration("20230703132156_add-title")]
+    partial class addtitle
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

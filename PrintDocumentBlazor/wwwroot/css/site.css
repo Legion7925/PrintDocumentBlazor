@@ -71,3 +71,16 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+h5.mud-typography {
+    font-family: Vazir !important;
+}
+
+.mud-button {
+    font-family: Vazir !important;
+}
+
+
+.mud-typography {
+    font-family: Vazir !important;
+}

@@ -12,7 +12,7 @@ using PrintDocument.Core;
 namespace PrintDocument.Core.Migrations
 {
     [DbContext(typeof(PrintContext))]
-    [Migration("20230703080513_initial")]
+    [Migration("20230703121516_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -37,7 +37,12 @@ namespace PrintDocument.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
 
                     b.ToTable("Categories");
                 });
@@ -64,6 +69,28 @@ namespace PrintDocument.Core.Migrations
                     b.ToTable("Documents");
                 });
 
+            modelBuilder.Entity("PrintDocument.Core.Entities.Keyword", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("Keywords");
+                });
+
             modelBuilder.Entity("PrintDocument.Core.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -87,6 +114,15 @@ namespace PrintDocument.Core.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("PrintDocument.Core.Entities.Category", b =>
+                {
+                    b.HasOne("PrintDocument.Core.Entities.Category", "Parent")
+                        .WithMany("ChildCategories")
+                        .HasForeignKey("ParentId");
+
+                    b.Navigation("Parent");
+                });
+
             modelBuilder.Entity("PrintDocument.Core.Entities.Document", b =>
                 {
                     b.HasOne("PrintDocument.Core.Entities.Category", "Category")
@@ -96,6 +132,20 @@ namespace PrintDocument.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("PrintDocument.Core.Entities.Keyword", b =>
+                {
+                    b.HasOne("PrintDocument.Core.Entities.Keyword", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId");
+
+                    b.Navigation("Parent");
+                });
+
+            modelBuilder.Entity("PrintDocument.Core.Entities.Category", b =>
+                {
+                    b.Navigation("ChildCategories");
                 });
 #pragma warning restore 612, 618
         }

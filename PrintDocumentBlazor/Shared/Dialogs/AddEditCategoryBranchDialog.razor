@@ -1,0 +1,107 @@
+﻿@using Microsoft.EntityFrameworkCore;
+@using PrintDocument.Core.Entities;
+@using PrintDocument.Core;
+@using PrintDocument.Core.Exception;
+
+
+
+<MudRTLProvider RightToLeft=true>
+    <MudDialog>
+        <DialogContent>
+            <MudForm>
+                <MudTextField @bind-Value="Branch.Name" Label="نام موضوع" Variant="Variant.Outlined" />
+            </MudForm>
+        </DialogContent>
+
+        <DialogActions>
+            <MudButton StartIcon="@Icons.Material.Filled.DoNotDisturbOn" Color=Color.Error OnClick="Cancel">لغو</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Done" Color="SubmitButtonColor" OnClick="SubmitBranch">@SubmitButtonText</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudRTLProvider>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = new MudDialogInstance();
+
+    [Inject]
+    public PrintContext PrintContext { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    [Parameter]
+    public string SubmitButtonText { get; set; } = string.Empty;
+
+    [Parameter]
+    public Color SubmitButtonColor { get; set; }
+
+    [Parameter]
+    public bool IsRoot { get; set; } = true;
+
+    [Parameter]
+    public int? ParentId { get; set; }
+
+    [Parameter]
+    public int BranchId { get; set; }
+
+    [Parameter]
+    public bool IsEdit { get; set; }
+
+    [Parameter]
+    public Category Branch { get; set; } = new();
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async Task AddCategory()
+    {
+        if (await PrintContext.Categories.AnyAsync(i => i.Name == Branch.Name)) throw new AppException("نام موضوع تکراری میباشد");
+        await PrintContext.Categories.AddAsync(Branch);
+        await PrintContext.SaveChangesAsync();
+    }
+
+    private async Task UpdateCategory()
+    {
+        var category = await PrintContext.Categories.FirstOrDefaultAsync(i => i.Id == BranchId);
+        if (category == null) throw new AppException("کد موضوع یافت نشد");
+
+        category.Name = Branch.Name;
+        category.ParentId = ParentId;
+        await PrintContext.SaveChangesAsync();
+    }
+
+    private async Task SubmitBranch()
+    {
+        try
+        {
+            if (IsRoot)
+                Branch.ParentId = null;
+            else
+                Branch.ParentId = ParentId;
+
+            if (IsEdit)
+            {
+                await UpdateCategory();
+                Snackbar.Add("عملیات ویرایش با موفقیت انجام شد", Severity.Success);
+            }
+            else
+            {
+                await AddCategory();
+                if (IsRoot)
+                    Snackbar.Add("موضوع اصلی جدید با موفقیت اضافه شد", Severity.Success);
+                else
+                    Snackbar.Add("موضوع فرعی جدید با موفقیت اضافه شد", Severity.Success);
+            }
+
+            MudDialog.Close();
+        }
+        catch (AppException ax)
+        {
+            Snackbar.Add(ax.Message, Severity.Warning);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("در عملیات ثبت خطایی رخ داده است", Severity.Error);
+        }
+    }
+}
