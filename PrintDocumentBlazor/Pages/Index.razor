@@ -1,79 +1,140 @@
-﻿@page "/"
+﻿@layout LoginLayout
+@page "/"
+@using Microsoft.EntityFrameworkCore;
 @using PrintDocument.Core.Entities;
-@using TinyMCE.Blazor
+@using PrintDocument.Core.Models;
+@using PrintDocument.Core;
+@using System.Security.Cryptography;
+@using System.Text;
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge">
-    <div class="d-flex gap-4 my-5">
-        <MudPaper Class="overflow-y-auto overflow-x-hidden" Width="30%" Height="87vh" Elevation="3">
-            <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
-                <MudTabPanel Text="موضوعات">
-                    <MudGrid Style="align-items:baseline" Class="m-1">
-                        <MudItem xs=6 sm=6 Class="d-flex flex-row">
-                            <MudFab StartIcon="@Icons.Material.Outlined.Add" Color="Color.Success" Size="Size.Medium" OnClick="OpenAddRootDialog" />
-                        </MudItem>
-                        <MudItem xs=5 sm=5 Class="d-flex flex-row-reverse">
-                        </MudItem>
-                    </MudGrid>
-                    <MudTreeView Items="categories" Class="m-2">
-                        <ItemTemplate>
-                            <MudTreeViewItem T="CategoryReport" @bind-Expanded="@context.IsCategoryChildExpanded" Items="@context.CategoryChildren" Value="@context"
-                                             Text="@context.Name">
-                                <Content>
-                                    <MudTooltip Text="شاخه جدید">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="(()=> OpenAddBranchDialog(context.Id))"></MudIconButton>
-                                    </MudTooltip>
-                                    <MudTooltip Text="ویرایش شاخه">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="(()=> OpenEditBranchDialog(context))"></MudIconButton>
-                                    </MudTooltip>
-                                    <MudTooltip Text="حذف شاخه">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="(()=> OpenDeleteBranchDialog(context))"></MudIconButton>
-                                    </MudTooltip>
-                                    <MudTreeViewItemToggleButton @bind-Expanded="@context.IsCategoryChildExpanded" Visible="@context.HasChild" />
-                                    @if (context.HasDocument)
-                                    {
-                                        <MudLink @onclick="(()=> OpenDocumentsDialog(context.Id))">@context.Name</MudLink>
-                                    }
-                                    else
-                                    {
-                                        <MudText>@context.Name</MudText>
-                                    }
-                                </Content>
-                            </MudTreeViewItem>
-                        </ItemTemplate>
-                    </MudTreeView>
-                </MudTabPanel>
-                <MudTabPanel Text="کلید واژه">
-                    @if (GroupedDocuments != null)
-                    {
-                        <MudList Clickable="true" Dense="true">
-                            @foreach (var group in GroupedDocuments)
-                            {
-                                <MudListItem Text="@group.Key.ToString()">
-                                    <NestedList>
+<MudRTLProvider RightToLeft="true">
+    <MudTabs @ref="tabs" Elevation="4" Style="max-width:400px;margin:0 auto;margin-top:12%;" Rounded="true" Centered="true" Color="@Color.Primary">
+        <MudTabPanel Text="ورود">
+            <MudCard Class="card" Elevation="4">
+                <MudCardContent>
+                    <MudTextField Class="my-5" @bind-Value="loginModel.UsernameOrPhoneNumber" Label="نام کاربری یا شماره موبایل" Variant="Variant.Text"
+                                  Required="true" RequiredError="نام کاربری یا شماره موبایل نمیتواند خالی باشد" />
 
-                                        @foreach (var document in group)
-                                        {
-                                            <MudListItem Text="@document.Title" @onclick="(()=> plainText = document.PlainText)" />
-                                        }
-                                    </NestedList>
-                                </MudListItem>
-                            }
-                        </MudList>
-                    }
-                </MudTabPanel>
-            </MudTabs>
-        </MudPaper>
-        <MudPaper Width="70%" Height="87vh" Elevation="3" Class="overflow-hidden">
-            <div class="d-flex m-1">
-                <MudTooltip Text="سند جدید">
-                    <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" @onclick="(()=>OpenNewDocument())"></MudIconButton>
-                </MudTooltip>
-                <MudTooltip Text="ذخیره سند">
-                    <MudIconButton Icon="@Icons.Material.Filled.Save" Color="Color.Info" @onclick="(()=>OpenSaveDocumentDialog())"></MudIconButton>
-                </MudTooltip>
-            </div>
-            <Editor @bind-Value="plainText" Conf="editorConf" />
-        </MudPaper>
-    </div>
-</MudContainer>
+                    <MudTextField Class="my-5" @bind-Value="loginModel.Password" InputType="InputType.Password" Label="کلمه عبور" Variant="Variant.Text"
+                                  Required="true" RequiredError="کلمه عبور نمیتواند خالی باشد" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mx-auto" EndIcon="@Icons.Material.Filled.Login"
+                    @onclick="LoginUser">ورود</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudTabPanel>
+        <MudTabPanel Text="ثبت نام">
+            <MudCard Class="card" Elevation="4">
+                <MudCardContent>
 
+                    <MudTextField Class="my-5" Required="true" @bind-Value="registerModel.NameAndFamily" Label="نام و نام خانوادگی"
+                                  Variant="Variant.Text" RequiredError="نام و نام خوانواندگی نمیتواند خالی باشد" />
+
+                    <MudTextField Class="my-5" @bind-Value="registerModel.Username" Label="نام کاربری"
+                                  Variant="Variant.Text" Required="true" RequiredError="نام کاربری نمیتواند خالی باشد" />
+
+                    <MudTextField Class="my-5" @bind-Value="registerModel.PhoneNumber" Label="شماره موبایل" Variant="Variant.Text"
+                                  Required="true" RequiredError="شماره تلفن نمیتواند خالی باشد" />
+                    <MudTextField Class="my-5" @bind-Value="registerModel.Password" InputType="InputType.Password" Label="کلمه عبور" Variant="Variant.Text"
+                                  Required="true" RequiredError="کلمه عبور نمیتواند خالی باشد" />
+                    <MudTextField Class="my-5" @bind-Value="registerModel.ConfirmPassword" InputType="InputType.Password" Label="تایید کلمه عبور"
+                                  Variant="Variant.Text" Required="true" RequiredError="کلمه عبور نمیتواند خالی باشد" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mx-auto" @onclick="RegisterUser">ثبت نام</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudTabPanel>
+
+    </MudTabs>
+</MudRTLProvider>
+
+@code {
+    [Inject]
+    public PrintContext context { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    [Inject]
+    public NavigationManager NavManager { get; set; } = default!;
+
+    private MudTabs tabs = new();
+
+    private UserLoginModel loginModel = new();
+
+    private UserRegisterModel registerModel = new();
+
+    private async Task RegisterUser()
+    {
+        var userExist = context.Users.Any(u => u.Username == registerModel.Username);
+        if (userExist is true)
+        {
+            Snackbar.Add("نام کاربری فوق قبلا ثبت شده است", Severity.Warning);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(registerModel.Username) ||
+        string.IsNullOrEmpty(registerModel.NameAndFamily) ||
+        string.IsNullOrEmpty(registerModel.Password) ||
+        string.IsNullOrEmpty(registerModel.PhoneNumber) ||
+        string.IsNullOrEmpty(registerModel.ConfirmPassword))
+        {
+            Snackbar.Add("لطفا همه ی فیلد ها را پر کنید", Severity.Warning);
+            return;
+        }
+
+        if (registerModel.Password != registerModel.ConfirmPassword)
+        {
+            Snackbar.Add("کلمه های عبور با یکدیگر همخوانی ندارند", Severity.Warning);
+            return;
+        }
+
+        await context.Users.AddAsync(new User
+            {
+                NameAndFamily = registerModel.NameAndFamily,
+                PasswordHash = HashPassword(registerModel.Password),
+                Username = registerModel.Username,
+                PhoneNumber = registerModel.PhoneNumber
+            });
+        await context.SaveChangesAsync();
+
+        registerModel = new();
+        Snackbar.Add("ثبت نام شما با موفقیت انجام شد اکنون میتوانید وارد نرم افزار شوید", Severity.Success);
+        tabs.ActivatePanel(0);
+        StateHasChanged();
+
+    }
+
+    private async Task LoginUser()
+    {
+        if (string.IsNullOrEmpty(loginModel.UsernameOrPhoneNumber) ||
+            string.IsNullOrEmpty(loginModel.Password))
+        {
+            Snackbar.Add("لطفا همه ی فیلد ها را پر کنید", Severity.Warning);
+            return;
+        }
+
+        var userExist = await context.Users.AnyAsync(i => i.Username == loginModel.UsernameOrPhoneNumber
+            && i.PasswordHash == HashPassword(loginModel.Password)
+            || i.PhoneNumber == loginModel.UsernameOrPhoneNumber
+            && i.PasswordHash == HashPassword(loginModel.Password));
+
+        if (userExist)
+            NavManager.NavigateTo("/Home");
+        else
+            Snackbar.Add("نام کاربری یا کلمه عبور یا شماره موبایل نادرست است", Severity.Warning);
+    }
+
+    private string HashPassword(string password)
+    {
+        using (SHA256 sha256 = SHA256.Create())
+        {
+            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+            byte[] hashBytes = sha256.ComputeHash(passwordBytes);
+            return Convert.ToBase64String(hashBytes);
+        }
+    }
+
+}

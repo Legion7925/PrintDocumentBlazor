@@ -4,13 +4,11 @@ public class User
 {
     public Guid Id { get; set; }
 
-    public required string NameAndFamily { get; set; }
+    public string NameAndFamily { get; set; } = string.Empty;
 
-    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
 
-    public string? MobileNumber { get; set; }
+    public  string Username { get; set; } = string.Empty;
 
-    public required string Username { get; set; }
-
-    public required string PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = string.Empty;
 }

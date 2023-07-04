@@ -6,18 +6,20 @@
 <PageTitle>‍‍‍‍‍پرینت سند</PageTitle>
 
 <MudRTLProvider RightToLeft=true>
-    <MudLayout> 
+    <MudLayout>
         <MudAppBar>
             @*<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />*@
         </MudAppBar>
-@*        <MudDrawer @bind-Open="@_drawerOpen">
-            <NavMenu />
+        @*        <MudDrawer @bind-Open="@_drawerOpen">
+        <NavMenu />
         </MudDrawer>*@
         <MudMainContent>
             @Body
         </MudMainContent>
     </MudLayout>
 </MudRTLProvider>
+
+
 
 
 @code {

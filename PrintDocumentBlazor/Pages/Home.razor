@@ -1,0 +1,79 @@
+﻿@page "/Home"
+@using PrintDocument.Core.Entities;
+@using TinyMCE.Blazor
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <div class="d-flex gap-4 my-5">
+        <MudPaper Class="overflow-y-auto overflow-x-hidden" Width="30%" Height="87vh" Elevation="3">
+            <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
+                <MudTabPanel Text="موضوعات">
+                    <MudGrid Style="align-items:baseline" Class="m-1">
+                        <MudItem xs=6 sm=6 Class="d-flex flex-row">
+                            <MudFab StartIcon="@Icons.Material.Outlined.Add" Color="Color.Success" Size="Size.Medium" OnClick="OpenAddRootDialog" />
+                        </MudItem>
+                        <MudItem xs=5 sm=5 Class="d-flex flex-row-reverse">
+                        </MudItem>
+                    </MudGrid>
+                    <MudTreeView Items="categories" Class="m-2">
+                        <ItemTemplate>
+                            <MudTreeViewItem T="CategoryReport" @bind-Expanded="@context.IsCategoryChildExpanded" Items="@context.CategoryChildren" Value="@context"
+                                             Text="@context.Name">
+                                <Content>
+                                    <MudTooltip Text="شاخه جدید">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="(()=> OpenAddBranchDialog(context.Id))"></MudIconButton>
+                                    </MudTooltip>
+                                    <MudTooltip Text="ویرایش شاخه">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="(()=> OpenEditBranchDialog(context))"></MudIconButton>
+                                    </MudTooltip>
+                                    <MudTooltip Text="حذف شاخه">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="(()=> OpenDeleteBranchDialog(context))"></MudIconButton>
+                                    </MudTooltip>
+                                    <MudTreeViewItemToggleButton @bind-Expanded="@context.IsCategoryChildExpanded" Visible="@context.HasChild" />
+                                    @if (context.HasDocument)
+                                    {
+                                        <MudLink @onclick="(()=> OpenDocumentsDialog(context.Id))">@context.Name</MudLink>
+                                    }
+                                    else
+                                    {
+                                        <MudText>@context.Name</MudText>
+                                    }
+                                </Content>
+                            </MudTreeViewItem>
+                        </ItemTemplate>
+                    </MudTreeView>
+                </MudTabPanel>
+                <MudTabPanel Text="کلید واژه">
+                    @if (GroupedDocuments != null)
+                    {
+                        <MudList Clickable="true" Dense="true">
+                            @foreach (var group in GroupedDocuments)
+                            {
+                                <MudListItem Text="@group.Key.ToString()">
+                                    <NestedList>
+
+                                        @foreach (var document in group)
+                                        {
+                                            <MudListItem Text="@document.Title" @onclick="(()=> plainText = document.PlainText)" />
+                                        }
+                                    </NestedList>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    }
+                </MudTabPanel>
+            </MudTabs>
+        </MudPaper>
+        <MudPaper Width="70%" Height="87vh" Elevation="3" Class="overflow-hidden">
+            <div class="d-flex m-1">
+                <MudTooltip Text="سند جدید">
+                    <MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" @onclick="(()=>OpenNewDocument())"></MudIconButton>
+                </MudTooltip>
+                <MudTooltip Text="ذخیره سند">
+                    <MudIconButton Icon="@Icons.Material.Filled.Save" Color="Color.Info" @onclick="(()=>OpenSaveDocumentDialog())"></MudIconButton>
+                </MudTooltip>
+            </div>
+            <Editor @bind-Value="plainText" Conf="editorConf" />
+        </MudPaper>
+    </div>
+</MudContainer>
+

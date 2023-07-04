@@ -25,5 +25,5 @@ public class PrintContext : DbContext
 
     public DbSet<Document> Documents { get; set; }
 
-    public DbSet<Keyword> Keywords { get; set; }
+    //public DbSet<Keyword> Keywords { get; set; }
 }

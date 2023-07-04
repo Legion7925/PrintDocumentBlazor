@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using PrintDocument.Core;
-using PrintDocument.Core.Authentication;
-using PrintDocument.Core.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +9,6 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
 builder.Services.AddDbContext<PrintContext>(options => options.UseSqlServer(builder.Configuration["ConnectionStrings:LocalConnectionString"]));
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
-builder.Services.AddScoped<IJwtUtilities, JwtUtilities>();
 
 builder.Services.AddMudServices();
 

@@ -59,6 +59,7 @@
     protected override async Task OnInitializedAsync()
     {
         Categories = await PrintContext.Categories.AsNoTracking().ToListAsync();
+        Document.CategoryId = Categories.FirstOrDefault()?.Id ?? 1;
     }
 
     private async Task AddDocument()
