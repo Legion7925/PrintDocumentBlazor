@@ -21,7 +21,9 @@ public class CategoryReport : Category
 
     public HashSet<Document> DocumentChildren = new HashSet<Document>();
 
-    public bool IsExpanded { get; set; } = false;
+    public bool IsCategoryChildExpanded { get; set; } = false;
+
+    public bool IsDocumentChildExpanded { get; set; } = false;
 
     public bool HasChild => CategoryChildren != null && CategoryChildren.Count > 0;
 

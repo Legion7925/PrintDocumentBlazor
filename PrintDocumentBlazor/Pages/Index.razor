@@ -15,10 +15,9 @@
             </MudGrid>
             <MudTreeView Items="categories" Class="m-2">
                 <ItemTemplate>
-
-                    <MudTreeViewItem Icon="Icons.Material.Filled.Label" T="CategoryReport" @bind-Expanded="@context.IsExpanded" Items="@context.CategoryChildren" Value="@context"
-                    Text="@context.Name">
-                        <Content>             
+                    <MudTreeViewItem T="CategoryReport" @bind-Expanded="@context.IsCategoryChildExpanded" Items="@context.CategoryChildren" Value="@context"
+                                     Text="@context.Name">
+                        <Content>
                             <MudTooltip Text="شاخه جدید">
                                 <MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="(()=> OpenAddBranchDialog(context.Id))"></MudIconButton>
                             </MudTooltip>
@@ -28,15 +27,30 @@
                             <MudTooltip Text="حذف شاخه">
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="(()=> OpenDeleteBranchDialog(context))"></MudIconButton>
                             </MudTooltip>
-                            <MudTreeViewItemToggleButton @bind-Expanded="@context.IsExpanded" Visible="@context.HasChild" />
-                            <MudText>@context.Name</MudText> 
+                            <MudTreeViewItemToggleButton @bind-Expanded="@context.IsCategoryChildExpanded" Visible="@context.HasChild" />
+                            <MudText>@context.Name</MudText>
+                            @if (context.HasDocument)
+                            {
+                                <MudToggleIconButton @bind-Toggled="@context.IsDocumentChildExpanded"
+                                                     Icon="@Icons.Material.Filled.ArrowDropUp"
+                                                     ToggledIcon="@Icons.Material.Filled.ArrowLeft" />
+                            }
+                            @if (context.IsDocumentChildExpanded)
+                            {
+                                <MudList Clickable="true ">
+                                    @foreach (var item in @context.Documents)
+                                    {
+                                        <MudListItem Text="@item.Title" Icon="@Icons.Material.Filled.Note" />
+                                    }
+                                </MudList>
+                            }
                         </Content>
                     </MudTreeViewItem>
                 </ItemTemplate>
             </MudTreeView>
         </MudPaper>
         <MudPaper Width="70%" Height="87vh" Elevation="3" Class="overflow-hidden">
-            <Editor @bind-Value="plainText" Conf="editorConf"/>
+            <Editor @bind-Value="plainText" Conf="editorConf" />
         </MudPaper>
     </div>
 </MudContainer>
