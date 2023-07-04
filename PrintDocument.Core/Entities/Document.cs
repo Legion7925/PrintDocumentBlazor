@@ -9,7 +9,7 @@ public class Document
     public string Title { get; set; } = string.Empty;
 
     [Column(TypeName = "ntext")]
-    public required string PlainText { get; set; }
+    public string PlainText { get; set; } = string.Empty;
 
     public int CategoryId { get; set; }
 

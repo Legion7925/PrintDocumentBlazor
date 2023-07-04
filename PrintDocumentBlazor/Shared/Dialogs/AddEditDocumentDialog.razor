@@ -1,0 +1,109 @@
+﻿@using Microsoft.EntityFrameworkCore;
+@using PrintDocument.Core.Entities;
+@using PrintDocument.Core;
+@using PrintDocument.Core.Exception;
+
+
+
+<MudRTLProvider RightToLeft=true>
+    <MudDialog>
+        <DialogContent>
+            <MudForm>
+                <MudTextField Class="my-3" @bind-Value="Document.Title" Label="نام سند" Variant="Variant.Text" />
+                <MudSelect @bind-Value="Document.CategoryId">
+                    @foreach (var item in Categories)
+                    {
+                        <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudForm>
+        </DialogContent>
+
+        <DialogActions>
+            <MudButton StartIcon="@Icons.Material.Filled.DoNotDisturbOn" Color=Color.Error OnClick="Cancel">لغو</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Done" Color="SubmitButtonColor" OnClick="SubmitDocument">@SubmitButtonText</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudRTLProvider>
+
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = new MudDialogInstance();
+
+    [Inject]
+    public PrintContext PrintContext { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    [Parameter]
+    public string SubmitButtonText { get; set; } = string.Empty;
+
+    [Parameter]
+    public Color SubmitButtonColor { get; set; }
+
+    [Parameter]
+    public bool IsEdit { get; set; }
+
+    [Parameter]
+    public int DocumentId { get; set; }
+
+    [Parameter]
+    public Document Document { get; set; } = new();
+
+    private List<Category> Categories = new List<Category>();
+
+    void Cancel() => MudDialog.Cancel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = await PrintContext.Categories.AsNoTracking().ToListAsync();
+    }
+
+    private async Task AddDocument()
+    {
+        if (Document.CategoryId == 0) throw new AppException("لطفا موضوع سند را انتخاب کنید");
+        if (string.IsNullOrEmpty(Document.Title)) throw new AppException("نام سند نمیتواند خالی باشد");
+
+        await PrintContext.Documents.AddAsync(Document);
+        await PrintContext.SaveChangesAsync();
+    }
+
+    private async Task UpdateDocument()
+    {
+        var document = await PrintContext.Documents.FirstOrDefaultAsync(i => i.Id == DocumentId);
+        if (document == null) throw new AppException("کد سند یافت نشد");
+
+        document.Title = Document.Title;
+        document.CategoryId = Document.CategoryId;
+        await PrintContext.SaveChangesAsync();
+    }
+
+    private async Task SubmitDocument()
+    {
+        try
+        {
+            if (IsEdit)
+            {
+                await UpdateDocument();
+                Snackbar.Add("عملیات ویرایش با موفقیت انجام شد", Severity.Success);
+            }
+            else
+            {
+                await AddDocument();
+                Snackbar.Add("سند با موفقیت ذخیره شد", Severity.Success);
+            }
+
+            MudDialog.Close();
+        }
+        catch (AppException ax)
+        {
+            Snackbar.Add(ax.Message, Severity.Warning);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("در عملیات ثبت خطایی رخ داده است", Severity.Error);
+        }
+    }
+}

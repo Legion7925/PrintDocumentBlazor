@@ -1,0 +1,124 @@
+﻿@using Microsoft.EntityFrameworkCore;
+@using PrintDocument.Core;
+@using PrintDocument.Core.Entities;
+@using PrintDocument.Core.Exception;
+
+<MudRTLProvider RightToLeft="true">
+    <MudDialog>
+        <DialogContent>
+            <MudTable Class="m-2" Items="Documents" T="Document" Hover="true" Breakpoint="Breakpoint.Sm" LoadingProgressColor="Color.Info">
+                <HeaderContent>
+                    <MudTh>نام</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="نام">@context.Title</MudTd>
+                    <MudTd>
+                        <MudTooltip Text="حذف" Placement="Placement.Bottom">
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                            @onclick="(()=> DeleteDocument(context.Id))"></MudIconButton>
+                        </MudTooltip>
+                        <MudTooltip Text="ویرایش" Placement="Placement.Bottom">
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info"
+                            @onclick="(()=> UpdateDocument(context))"></MudIconButton>
+                        </MudTooltip>
+                        <MudTooltip Text="انتخاب" Placement="Placement.Bottom">
+                            <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success"
+                            @onclick="(()=> LoadDocument(context.Id))"></MudIconButton>
+                        </MudTooltip>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </DialogContent>
+    </MudDialog>
+</MudRTLProvider>
+
+@code {
+    [Inject]
+    public PrintContext Context { get; set; } = default!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = default!;
+
+    [Inject]
+    public IDialogService DialogService { get; set; } = default!;
+
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public int CategoryId { get; set; }
+
+    private List<Document> Documents = new List<Document>();
+
+    protected override async Task OnInitializedAsync() => await GetDocuments();
+
+    private async Task GetDocuments() => Documents = await Context.Documents.AsNoTracking().Where(i => i.CategoryId == CategoryId).ToListAsync();
+
+    private void LoadDocument(int id) => MudDialog.Close(DialogResult.Ok(id));
+
+    private async Task DeleteDocument(int docId)
+    {
+        try
+        {
+            DialogOptions options = new DialogOptions() { CloseOnEscapeKey = true };
+            DialogParameters parmeters = new DialogParameters
+            {
+                { "ContentText", $"آیا از حذف سند انتخابی اطمینان دارید " },
+                { "ButtonText", "حذف" },
+                { "Color", Color.Error }
+            };
+            var dialodDelete = DialogService.Show<MessageDialog>("", parmeters, options);
+            var result = await dialodDelete.Result;
+            if (!result.Canceled)
+            {
+                var document = await Context.Documents.FirstOrDefaultAsync(i => i.Id == docId);
+                if (document == null) throw new AppException("کد سند مورد نظر یافت نشد");
+                Context.Documents.Remove(document);
+                await Context.SaveChangesAsync();
+
+                Snackbar.Add("عملیات حذف با موفقیت انجام شد", Severity.Success);
+                await GetDocuments();
+            }
+        }
+        catch (AppException ax)
+        {
+            Snackbar.Add(ax.Message, Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+
+    }
+
+    private async Task UpdateDocument(Document document)
+    {
+        try
+        {
+            DialogOptions options = new DialogOptions() { CloseOnEscapeKey = false, DisableBackdropClick = true };
+            DialogParameters parametrs = new DialogParameters
+            {
+                { "IsEdit", true },
+                {"DocumentId" , document.Id},
+                { "SubmitButtonColor", Color.Success },
+                { "SubmitButtonText", "ذخیره" },
+                {"Document" ,  document}
+            };
+            var addDialog = DialogService.Show<AddEditDocumentDialog>("ویرایش سند", parametrs, options);
+            var result = await addDialog.Result;
+            if (!result.Canceled)
+            {
+                await GetDocuments();
+            }
+        }
+        catch (AppException ax)
+        {
+            Snackbar.Add(ax.Message, Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+    }
+}
