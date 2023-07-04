@@ -4,7 +4,7 @@
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge">
     <div class="d-flex gap-4 my-5">
-        <MudPaper Width="30%" Height="87vh" Elevation="3">
+        <MudPaper Class="overflow-y-auto overflow-x-hidden" Width="30%" Height="87vh" Elevation="3">
             <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
                 <MudTabPanel Text="موضوعات">
                     <MudGrid Style="align-items:baseline" Class="m-1">
@@ -45,15 +45,15 @@
                 <MudTabPanel Text="کلید واژه">
                     @if (GroupedDocuments != null)
                     {
-                        <MudList Clickable="true">
+                        <MudList Clickable="true" Dense="true">
                             @foreach (var group in GroupedDocuments)
                             {
                                 <MudListItem Text="@group.Key.ToString()">
                                     <NestedList>
 
-                                        @foreach (var title in group)
+                                        @foreach (var document in group)
                                         {
-                                            <MudListItem Text="@title.Title"/>
+                                            <MudListItem Text="@document.Title" @onclick="(()=> plainText = document.PlainText)" />
                                         }
                                     </NestedList>
                                 </MudListItem>

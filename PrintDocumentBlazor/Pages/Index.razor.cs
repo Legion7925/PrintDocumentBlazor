@@ -212,6 +212,7 @@ partial class Index
             if (!result.Canceled)
             {
                 await GetCategories();
+                await GetDocuments();
             }
         }
         catch (AppException ax)
