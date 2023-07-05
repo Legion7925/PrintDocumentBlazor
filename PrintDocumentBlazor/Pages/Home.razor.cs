@@ -19,10 +19,11 @@ partial class Home
     [Inject]
     public IDialogService DialogService { get; set; } = default!;
 
+    [Inject]
+    public PrintContext PrintContext { get; set; } = default!;
+
 
     private HashSet<CategoryReport> categories = new HashSet<CategoryReport>();
-
-    public string plainText = string.Empty;
 
     private Dictionary<string, object> editorConf = new Dictionary<string, object>
 {
@@ -30,6 +31,8 @@ partial class Home
 };
 
     private IOrderedEnumerable<IGrouping<char, Document>> GroupedDocuments = default!;
+
+    private Document CurrentDocument = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -179,9 +182,11 @@ partial class Home
             var result = await dialodDelete.Result;
             if (!result.Canceled)
             {
-                var docId = Convert.ToInt32(result.Data);
-                var document = await GetDocumentById(docId);
-                plainText = document.PlainText;
+                var document = (Document)(result.Data);
+                CurrentDocument.Id = document.Id;
+                CurrentDocument.PlainText = document.PlainText;
+                CurrentDocument.Title = document.Title;
+                CurrentDocument.CategoryId = document.CategoryId;
                 StateHasChanged();
             }
         }
@@ -197,6 +202,16 @@ partial class Home
 
     private async Task OpenSaveDocumentDialog()
     {
+        if(CurrentDocument.CategoryId != 0)
+        {
+            var document = await PrintContext.Documents.FirstOrDefaultAsync(i => i.Id == CurrentDocument.Id);
+            if (document == null) goto openSaveDialg;
+            document.PlainText = CurrentDocument.PlainText;
+            await context.SaveChangesAsync();
+            Snackbar.Add("تغییرات سند ذخیره شد", Severity.Success);
+            return;
+        }
+        openSaveDialg:
         try
         {
             DialogOptions options = new DialogOptions() { CloseOnEscapeKey = false, DisableBackdropClick = true };
@@ -205,7 +220,7 @@ partial class Home
             { "IsEdit", false },
             { "SubmitButtonColor", Color.Success },
             { "SubmitButtonText", "ذخیره" },
-            {"Document" , new Document { PlainText = plainText } }
+            {"Document" , CurrentDocument }
         };
             var addDialog = DialogService.Show<AddEditDocumentDialog>("ذخیره سند", parametrs, options);
             var result = await addDialog.Result;
@@ -227,7 +242,7 @@ partial class Home
 
     private async Task OpenNewDocument()
     {
-        if (string.IsNullOrEmpty(plainText) is not true)
+        if (string.IsNullOrEmpty(CurrentDocument.PlainText) is not true)
         {
             DialogOptions options = new DialogOptions() { CloseOnEscapeKey = true };
             DialogParameters parmeters = new DialogParameters
@@ -239,7 +254,7 @@ partial class Home
             var dialodDelete = DialogService.Show<MessageDialog>("", parmeters, options);
             var result = await dialodDelete.Result;
             if (result.Canceled is not true)
-                plainText = string.Empty;
+                CurrentDocument = new();
         }
     }
 

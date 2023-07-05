@@ -24,7 +24,7 @@
                         </MudTooltip>
                         <MudTooltip Text="انتخاب" Placement="Placement.Bottom">
                             <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success"
-                            @onclick="(()=> LoadDocument(context.Id))"></MudIconButton>
+                            @onclick="(()=> LoadDocument(context))"></MudIconButton>
                         </MudTooltip>
                     </MudTd>
                 </RowTemplate>
@@ -55,7 +55,7 @@
 
     private async Task GetDocuments() => Documents = await Context.Documents.AsNoTracking().Where(i => i.CategoryId == CategoryId).ToListAsync();
 
-    private void LoadDocument(int id) => MudDialog.Close(DialogResult.Ok(id));
+    private void LoadDocument(Document document) => MudDialog.Close(DialogResult.Ok(document));
 
     private async Task DeleteDocument(int docId)
     {

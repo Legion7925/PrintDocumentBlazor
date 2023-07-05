@@ -2,6 +2,7 @@
 @page "/"
 @using Microsoft.EntityFrameworkCore;
 @using PrintDocument.Core.Entities;
+@using PrintDocument.Core.Helper;
 @using PrintDocument.Core.Models;
 @using PrintDocument.Core;
 @using System.Security.Cryptography;
@@ -94,7 +95,7 @@
         await context.Users.AddAsync(new User
             {
                 NameAndFamily = registerModel.NameAndFamily,
-                PasswordHash = HashPassword(registerModel.Password),
+                PasswordHash = PasswordHasher.HashPassword(registerModel.Password),
                 Username = registerModel.Username,
                 PhoneNumber = registerModel.PhoneNumber
             });
@@ -117,9 +118,9 @@
         }
 
         var userExist = await context.Users.AnyAsync(i => i.Username == loginModel.UsernameOrPhoneNumber
-            && i.PasswordHash == HashPassword(loginModel.Password)
+            && i.PasswordHash == PasswordHasher.HashPassword(loginModel.Password)
             || i.PhoneNumber == loginModel.UsernameOrPhoneNumber
-            && i.PasswordHash == HashPassword(loginModel.Password));
+            && i.PasswordHash == PasswordHasher.HashPassword(loginModel.Password));
 
         if (userExist)
             NavManager.NavigateTo("/Home");
@@ -127,14 +128,5 @@
             Snackbar.Add("نام کاربری یا کلمه عبور یا شماره موبایل نادرست است", Severity.Warning);
     }
 
-    private string HashPassword(string password)
-    {
-        using (SHA256 sha256 = SHA256.Create())
-        {
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-            byte[] hashBytes = sha256.ComputeHash(passwordBytes);
-            return Convert.ToBase64String(hashBytes);
-        }
-    }
 
 }
