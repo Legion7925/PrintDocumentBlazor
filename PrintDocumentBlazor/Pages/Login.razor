@@ -14,7 +14,7 @@
             <MudCard Class="card" Elevation="4">
                 <MudCardContent>
                     <MudTextField Class="my-5" @bind-Value="loginModel.UsernameOrPhoneNumber" Label="نام کاربری یا شماره موبایل" Variant="Variant.Text"
-                                  Required="true" RequiredError="نام کاربری یا شماره موبایل نمیتواند خالی باشد" />
+                                  Required="true" RequiredError="نام کاربری یا شماره موبایل نمیتواند خالی باشد"/>
 
                     <MudTextField Class="my-5" @bind-Value="loginModel.Password" InputType="InputType.Password" Label="کلمه عبور" Variant="Variant.Text"
                                   Required="true" RequiredError="کلمه عبور نمیتواند خالی باشد" />
@@ -23,6 +23,7 @@
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mx-auto" EndIcon="@Icons.Material.Filled.Login"
                     @onclick="LoginUser">ورود</MudButton>
                 </MudCardActions>
+                    <MudLink Class="mr-auto ml-2 my-2 cursor-pointer" OnClick="NavigateToForgetPasswordPage">فراموشی کلمه عبور؟</MudLink>
             </MudCard>
         </MudTabPanel>
         <MudTabPanel Text="ثبت نام">
@@ -128,5 +129,8 @@
             Snackbar.Add("نام کاربری یا کلمه عبور یا شماره موبایل نادرست است", Severity.Warning);
     }
 
-
+    private void NavigateToForgetPasswordPage()
+    {
+        NavManager.NavigateTo("/ForgotPassword");
+    }
 }
