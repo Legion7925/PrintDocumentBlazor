@@ -313,6 +313,4 @@ partial class Home
         }
         return list;
     }
-
-
 }
