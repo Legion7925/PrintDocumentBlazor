@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿namespace PrintDocumentBlazor.Pages;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using PrintDocument.Core;
 using PrintDocument.Core.Entities;
 using PrintDocument.Core.Exception;
 using PrintDocumentBlazor.Shared.Dialogs;
+using System.Globalization;
 
-namespace PrintDocumentBlazor.Pages;
 
-partial class Home
+partial class Index
 {
     [Inject]
     public PrintContext context { get; set; } = default!;
@@ -30,7 +31,7 @@ partial class Home
     {"height", 750}
 };
 
-    private IOrderedEnumerable<IGrouping<char, Document>> GroupedDocuments = default!;
+    private IEnumerable<IGrouping<string, Document>> GroupedDocuments = default!;
 
     private Document CurrentDocument = new();
 
@@ -202,7 +203,7 @@ partial class Home
 
     private async Task OpenSaveDocumentDialog()
     {
-        if(CurrentDocument.CategoryId != 0)
+        if (CurrentDocument.CategoryId != 0)
         {
             var document = await PrintContext.Documents.FirstOrDefaultAsync(i => i.Id == CurrentDocument.Id);
             if (document == null) goto openSaveDialg;
@@ -211,7 +212,7 @@ partial class Home
             Snackbar.Add("تغییرات سند ذخیره شد", Severity.Success);
             return;
         }
-        openSaveDialg:
+    openSaveDialg:
         try
         {
             DialogOptions options = new DialogOptions() { CloseOnEscapeKey = false, DisableBackdropClick = true };
@@ -258,13 +259,6 @@ partial class Home
         }
     }
 
-    private async Task<Document> GetDocumentById(int docId)
-    {
-        var document = await context.Documents.FirstOrDefaultAsync(i => i.Id == docId);
-        if (document == null) throw new AppException("سند مورد نظر یافت نشد");
-        return document;
-    }
-
     private async Task GetCategories()
     {
         var result = await context.Categories.AsNoTracking()
@@ -279,8 +273,15 @@ partial class Home
     {
         try
         {
+
             var documents = await context.Documents.AsNoTracking().ToListAsync();
-            GroupedDocuments = documents.GroupBy(d => d.Title[0]).OrderBy(g => g.Key);
+
+            CultureInfo persianCulture = new CultureInfo("fa-IR");
+
+            GroupedDocuments = documents.OrderBy(w => w.Title, StringComparer.Create(persianCulture, true))
+                                    .GroupBy(w => w.Title.Substring(0, 1), StringComparer.Create(persianCulture, true));
+
+            //GroupedDocuments = documents.GroupBy(d => d.Title[0]).OrderBy(g => g.Key);
         }
         catch (AppException ax)
         {
@@ -313,4 +314,5 @@ partial class Home
         }
         return list;
     }
+
 }

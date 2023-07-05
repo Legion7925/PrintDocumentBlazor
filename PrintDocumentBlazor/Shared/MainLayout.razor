@@ -8,6 +8,8 @@
 <MudRTLProvider RightToLeft=true>
     <MudLayout>
         <MudAppBar>
+            <MudSpacer/>
+            <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit"  @onclick="LogoutUser"/>
             @*<MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />*@
         </MudAppBar>
         @*        <MudDrawer @bind-Open="@_drawerOpen">
@@ -23,10 +25,18 @@
 
 
 @code {
+    [Inject]
+    public NavigationManager NavManager { get; set; } = default!;
+
     bool _drawerOpen = true;
 
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    private void LogoutUser()
+    {
+        NavManager.NavigateTo("/");
     }
 }

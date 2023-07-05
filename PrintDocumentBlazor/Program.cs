@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MudBlazor;
 using MudBlazor.Services;
 using PrintDocument.Core;
 
@@ -10,7 +11,18 @@ builder.Services.AddServerSideBlazor();
 
 builder.Services.AddDbContext<PrintContext>(options => options.UseSqlServer(builder.Configuration["ConnectionStrings:LocalConnectionString"]));
 
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 3000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
 
 
 var app = builder.Build();
